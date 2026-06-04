@@ -18,4 +18,4 @@
 [点击观看演示视频](你的视频链接)
 
 ## 本地运行
-直接双击 index.html 即可在浏览器中打开。
+直接双击language-learning-notebook.html 即可在浏览器中打开。
