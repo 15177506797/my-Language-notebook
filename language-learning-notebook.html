@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 语言学习笔记本</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-elevated: #243044;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8edf4;
+      --text-muted: #8b9cb3;
+      --accent: #3d9cf5;
+      --accent-soft: rgba(61, 156, 245, 0.15);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --speaking: #a78bfa;
+      --flashcard: #f472b6;
+      --dialogue: #38bdf8;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(61, 156, 245, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(167, 139, 250, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+
+    .config-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .config-panel summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .config-panel summary:hover {
+      color: var(--text);
+    }
+
+    .config-fields {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .config-fields label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .config-fields input {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .config-fields input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .input-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .input-section label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.6rem;
+      color: var(--text-muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 4px 16px rgba(61, 156, 245, 0.35);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(61, 156, 245, 0.45);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .status.error {
+      color: #f87171;
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .results {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .results-empty {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .section-card.dialogue {
+      overflow: visible;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .section-card.speaking .section-icon {
+      background: rgba(167, 139, 250, 0.2);
+    }
+
+    .section-card.flashcards .section-icon {
+      background: rgba(244, 114, 182, 0.2);
+    }
+
+    .section-card.dialogue .section-icon {
+      background: rgba(56, 189, 248, 0.2);
+    }
+
+    .section-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .section-header span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .section-body {
+      padding: 1.25rem;
+    }
+
+    /* 口语练习卡片 */
+    .speaking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .speaking-item {
+      background: var(--surface-elevated);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      border-left: 3px solid var(--speaking);
+    }
+
+    .speaking-item .phrase {
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+
+    .speaking-item .phonetic {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--speaking);
+      margin-bottom: 0.35rem;
+    }
+
+    .speaking-item .tip {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .btn-speak {
+      margin-top: 0.6rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-speak:hover {
+      background: rgba(61, 156, 245, 0.25);
+    }
+
+    /* 闪记卡 */
+    .flashcard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .flashcard {
+      aspect-ratio: 4/3;
+      perspective: 800px;
+      cursor: pointer;
+    }
+
+    .flashcard-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s;
+      transform-style: preserve-3d;
+    }
+
+    .flashcard.flipped .flashcard-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-front,
+    .flashcard-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      font-weight: 500;
+    }
+
+    .flashcard-front {
+      background: linear-gradient(145deg, var(--surface-elevated), #2d3a52);
+      border: 1px solid var(--border);
+      font-size: 1.1rem;
+      color: var(--flashcard);
+    }
+
+    .flashcard-back {
+      background: linear-gradient(145deg, #2d3a52, var(--surface-elevated));
+      border: 1px solid rgba(244, 114, 182, 0.3);
+      transform: rotateY(180deg);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .flashcard-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* 闪记卡抽卡特写 */
+    .flashcard-spotlight {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+
+    .flashcard-spotlight.active {
+      pointer-events: auto;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .spotlight-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 8, 14, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .spotlight-rays {
+      position: absolute;
+      width: 140vmax;
+      height: 140vmax;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(244, 114, 182, 0.06) 20deg,
+        transparent 40deg,
+        rgba(167, 139, 250, 0.08) 60deg,
+        transparent 80deg,
+        rgba(244, 114, 182, 0.06) 100deg,
+        transparent 120deg
+      );
+      animation: raysSpin 8s linear infinite;
+      opacity: 0;
+    }
+
+    .flashcard-spotlight.revealing .spotlight-rays,
+    .flashcard-spotlight.revealed .spotlight-rays {
+      opacity: 1;
+    }
+
+    @keyframes raysSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spotlight-burst {
+      position: absolute;
+      width: 60vmin;
+      height: 60vmin;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, transparent 65%);
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    .flashcard-spotlight.revealing .spotlight-burst {
+      animation: burstFlash 0.7s ease-out forwards;
+    }
+
+    @keyframes burstFlash {
+      0% { transform: scale(0); opacity: 0; }
+      40% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    .spotlight-card-wrap {
+      position: relative;
+      z-index: 2;
+      width: min(320px, 88vw);
+      aspect-ratio: 3/4;
+      perspective: 1200px;
+      transform: scale(0.15) rotateY(-90deg);
+      opacity: 0;
+      filter: blur(8px);
+    }
+
+    .flashcard-spotlight.revealing .spotlight-card-wrap {
+      animation: cardDrawIn 0.85s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+    }
+
+    .flashcard-spotlight.revealed .spotlight-card-wrap {
+      transform: scale(1);
+      opacity: 1;
+      filter: none;
+    }
+
+    @keyframes cardDrawIn {
+      0% {
+        transform: scale(0.15) rotateY(-90deg) translateY(40px);
+        opacity: 0;
+        filter: blur(8px);
+      }
+      55% {
+        transform: scale(1.12) rotateY(8deg) translateY(-8px);
+        opacity: 1;
+        filter: blur(0);
+      }
+      75% {
+        transform: scale(0.96) rotateY(-4deg);
+      }
+      100% {
+        transform: scale(1) rotateY(0);
+        opacity: 1;
+        filter: none;
+      }
+    }
+
+    .spotlight-card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .spotlight-card .flashcard-inner {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 0 0 2px rgba(244, 114, 182, 0.4),
+        0 0 40px rgba(244, 114, 182, 0.25),
+        0 24px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .spotlight-card.flipped .flashcard-inner {
+      transform: rotateY(180deg);
+    }
+
+    .spotlight-card .flashcard-front,
+    .spotlight-card .flashcard-back {
+      border-radius: 16px;
+      font-size: clamp(1.25rem, 5vw, 1.75rem);
+    }
+
+    .spotlight-card .flashcard-front {
+      background: linear-gradient(160deg, #3d2a4a 0%, #1a2332 50%, #243044 100%);
+      border: 2px solid rgba(244, 114, 182, 0.5);
+    }
+
+    .spotlight-card .flashcard-back {
+      background: linear-gradient(160deg, #1e3a5f 0%, #1a2332 50%, #243044 100%);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .spotlight-shine {
+      position: absolute;
+      inset: -4px;
+      border-radius: 18px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .spotlight-shine::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -80%;
+      width: 60%;
+      height: 200%;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.35) 50%,
+        transparent 60%
+      );
+      transform: skewX(-20deg);
+      opacity: 0;
+    }
+
+    .flashcard-spotlight.revealing .spotlight-shine::after {
+      animation: cardShine 0.9s ease 0.35s forwards;
+    }
+
+    @keyframes cardShine {
+      0% { left: -80%; opacity: 0; }
+      30% { opacity: 1; }
+      100% { left: 150%; opacity: 0; }
+    }
+
+    .spotlight-actions {
+      position: relative;
+      z-index: 2;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.65rem;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .flashcard-spotlight.revealed .spotlight-actions {
+      animation: fadeUp 0.4s ease 0.5s forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-spotlight-flip {
+      padding: 0.65rem 1.75rem;
+      background: linear-gradient(135deg, var(--flashcard), #db2777);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(244, 114, 182, 0.4);
+    }
+
+    .btn-spotlight-flip:hover {
+      filter: brightness(1.08);
+    }
+
+    .spotlight-close-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .spotlight-close-hint:hover {
+      color: var(--text);
+    }
+
+    /* 对话模拟器 */
+    .dialogue-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .dialogue-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .dialogue-box::-webkit-scrollbar-thumb {
+      background: var(--surface-elevated);
+      border-radius: 3px;
+    }
+
+    .dialogue-line {
+      display: flex;
+      gap: 0.65rem;
+      align-items: flex-start;
+    }
+
+    .dialogue-line.you {
+      flex-direction: row-reverse;
+    }
+
+    .dialogue-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .dialogue-line.partner .dialogue-avatar {
+      background: rgba(56, 189, 248, 0.25);
+      color: var(--dialogue);
+    }
+
+    .dialogue-line.you .dialogue-avatar {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .dialogue-bubble {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+
+    .dialogue-line.partner .dialogue-bubble {
+      background: var(--surface-elevated);
+      border-bottom-left-radius: 4px;
+    }
+
+    .dialogue-line.you .dialogue-bubble {
+      background: rgba(61, 156, 245, 0.2);
+      border: 1px solid rgba(61, 156, 245, 0.3);
+      border-bottom-right-radius: 4px;
+      text-align: right;
+    }
+
+    .dialogue-bubble .translation {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .dialogue-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
+      background: var(--surface-elevated);
+      color: var(--dialogue);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .dialogue-practice-panel {
+      display: none;
+      margin-top: 1rem;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .dialogue-practice-panel.open {
+      display: flex;
+      flex-direction: column;
+      max-height: min(70vh, 520px);
+    }
+
+    .practice-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(56, 189, 248, 0.08);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .practice-header strong {
+      color: var(--dialogue);
+    }
+
+    .btn-practice-end {
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-practice-end:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .practice-chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 200px;
+    }
+
+    .practice-msg {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      max-width: 92%;
+    }
+
+    .practice-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .practice-msg .practice-bubble {
+      padding: 0.65rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .practice-msg.assistant .practice-bubble {
+      background: var(--surface-elevated);
+      border-bottom-left-radius: 4px;
+    }
+
+    .practice-msg.user .practice-bubble {
+      background: rgba(61, 156, 245, 0.25);
+      border: 1px solid rgba(61, 156, 245, 0.35);
+      border-bottom-right-radius: 4px;
+    }
+
+    .practice-msg .practice-hint {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    .practice-msg.typing .practice-bubble {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .practice-input-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .practice-input-row input {
+      flex: 1;
+      padding: 0.65rem 0.9rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .practice-input-row input:focus {
+      outline: none;
+      border-color: var(--dialogue);
+    }
+
+    .btn-send {
+      padding: 0.65rem 1.1rem;
+      background: linear-gradient(135deg, var(--dialogue), #0284c7);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (min-width: 640px) {
+      .app {
+        padding: 2.5rem 2rem 4rem;
+      }
+
+      .config-fields {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .flashcard-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+    }
+
+    @media (min-width: 768px) {
+      .results-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>AI 语言学习笔记本</h1>
+      <p>写下今日所学，一键生成口语练习、闪记卡与对话模拟</p>
+    </header>
+
+    <details class="config-panel">
+      <summary>API 配置（点击展开，填写后保存到浏览器）</summary>
+      <div class="config-fields">
+        <div>
+          <label for="apiUrl">API URL</label>
+          <input type="url" id="apiUrl" placeholder="https://api.example.com/v1/chat/completions">
+        </div>
+        <div>
+          <label for="apiKey">API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+        </div>
+      </div>
+    </details>
+
+    <section class="input-section">
+      <label for="noteInput">学习笔记</label>
+      <textarea
+        id="noteInput"
+        placeholder="例如：今天在餐厅学会了说 Could I have the menu, please？还学了 bill、tip、reservation 这几个词。"
+        rows="4"
+      ></textarea>
+      <div class="actions">
+        <button type="button" class="btn-primary" id="generateBtn">
+          <span class="btn-text">生成学习内容</span>
+        </button>
+        <span class="status" id="statusText"></span>
+      </div>
+    </section>
+
+    <section class="results" id="results">
+      <div class="results-empty" id="resultsEmpty">
+        输入笔记并点击「生成学习内容」，AI 将为你整理口语卡片、单词闪记卡与情景对话
+      </div>
+    </section>
+  </div>
+
+  <!-- 闪记卡抽卡特写层 -->
+  <div class="flashcard-spotlight" id="flashcardSpotlight" aria-hidden="true">
+    <div class="spotlight-backdrop" id="spotlightBackdrop"></div>
+    <div class="spotlight-rays"></div>
+    <div class="spotlight-burst"></div>
+    <div class="spotlight-card-wrap">
+      <div class="spotlight-shine"></div>
+      <div class="spotlight-card" id="spotlightCard">
+        <div class="flashcard-inner">
+          <div class="flashcard-front" id="spotlightFront"></div>
+          <div class="flashcard-back" id="spotlightBack"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spotlight-actions">
+      <button type="button" class="btn-spotlight-flip" id="spotlightFlipBtn">翻转揭晓释义</button>
+      <button type="button" class="spotlight-close-hint" id="spotlightCloseBtn">点击空白处或此处关闭</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY_URL = 'langNotebook_apiUrl';
+    const STORAGE_KEY_KEY = 'langNotebook_apiKey';
+
+    const apiUrlInput = document.getElementById('apiUrl');
+    const apiKeyInput = document.getElementById('apiKey');
+    const noteInput = document.getElementById('noteInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const statusText = document.getElementById('statusText');
+    const resultsEl = document.getElementById('results');
+    const resultsEmpty = document.getElementById('resultsEmpty');
+    const flashcardSpotlight = document.getElementById('flashcardSpotlight');
+    const spotlightCard = document.getElementById('spotlightCard');
+    const spotlightFront = document.getElementById('spotlightFront');
+    const spotlightBack = document.getElementById('spotlightBack');
+    const spotlightFlipBtn = document.getElementById('spotlightFlipBtn');
+    const spotlightCloseBtn = document.getElementById('spotlightCloseBtn');
+    const spotlightBackdrop = document.getElementById('spotlightBackdrop');
+
+    let learningContext = { note: '', dialogue: [] };
+    let practiceSessions = new Map();
+
+    apiUrlInput.value = localStorage.getItem(STORAGE_KEY_URL) || '';
+    apiKeyInput.value = localStorage.getItem(STORAGE_KEY_KEY) || '';
+
+    apiUrlInput.addEventListener('change', () => {
+      localStorage.setItem(STORAGE_KEY_URL, apiUrlInput.value.trim());
+    });
+    apiKeyInput.addEventListener('change', () => {
+      localStorage.setItem(STORAGE_KEY_KEY, apiKeyInput.value.trim());
+    });
+
+    const SYSTEM_PROMPT = `你是一位语言学习助手。根据用户的学习笔记，生成 JSON 格式的学习内容，不要包含 markdown 代码块，只输出纯 JSON：
+
+{
+  "speaking": [
+    { "phrase": "英文句子", "phonetic": "/音标/", "tip": "发音或使用场景提示（中文）" }
+  ],
+  "flashcards": [
+    { "word": "单词", "definition": "中文释义" }
+  ],
+  "dialogue": [
+    { "role": "partner", "text": "英文", "translation": "中文" },
+    { "role": "you", "text": "英文", "translation": "中文" }
+  ]
+}
+
+要求：speaking 2-4 条相关口语；flashcards 4-8 个重点词汇；dialogue 6-10 轮自然情景对话，role 只能是 partner 或 you。`;
+
+    const PRACTICE_SYSTEM_PROMPT = `你是一位耐心的英语口语陪练。根据用户的学习笔记和情景，与用户进行角色扮演对话练习。
+
+规则：
+1. 主要用英语回复，每次 1-3 句，自然口语化。
+2. 在回复末尾用一行中文简要说明（格式：【提示】...），可包含发音建议、更地道的说法或鼓励。
+3. 扮演场景中的对方（如服务员、店员），引导用户多说。
+4. 温和纠正明显错误，不要长篇讲课。
+5. 保持对话连贯，逐步推进情景。`;
+
+    function setLoading(loading) {
+      generateBtn.disabled = loading;
+      const btnText = generateBtn.querySelector('.btn-text');
+      if (loading) {
+        btnText.innerHTML = '<span class="spinner"></span> 生成中…';
+      } else {
+        btnText.textContent = '生成学习内容';
+      }
+    }
+
+    function setStatus(msg, type = '') {
+      statusText.textContent = msg;
+      statusText.className = 'status' + (type ? ' ' + type : '');
+    }
+
+    function parseAIResponse(text) {
+      const trimmed = text.trim();
+      const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('无法解析 AI 返回的 JSON');
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    function speakPhrase(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    }
+
+    function renderSpeaking(items) {
+      const list = items.map(item => `
+        <div class="speaking-item">
+          <div class="phrase">${escapeHtml(item.phrase)}</div>
+          ${item.phonetic ? `<div class="phonetic">${escapeHtml(item.phonetic)}</div>` : ''}
+          ${item.tip ? `<div class="tip">${escapeHtml(item.tip)}</div>` : ''}
+          <button type="button" class="btn-speak" data-phrase="${escapeAttr(item.phrase)}">🔊 朗读</button>
+        </div>
+      `).join('');
+      return `
+        <article class="section-card speaking">
+          <div class="section-header">
+            <div class="section-icon">🎤</div>
+            <h2>口语练习卡片</h2>
+            <span>${items.length} 条</span>
+          </div>
+          <div class="section-body">
+            <div class="speaking-list">${list}</div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderFlashcards(items) {
+      const cards = items.map((item, i) => `
+        <div class="flashcard" tabindex="0" role="button" aria-label="点击查看：${escapeAttr(item.word)}"
+          data-word="${escapeAttr(item.word)}" data-definition="${escapeAttr(item.definition)}" data-index="${i}">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">${escapeHtml(item.word)}</div>
+            <div class="flashcard-back">${escapeHtml(item.definition)}</div>
+          </div>
+        </div>
+      `).join('');
+      return `
+        <article class="section-card flashcards">
+          <div class="section-header">
+            <div class="section-icon">📇</div>
+            <h2>闪记卡</h2>
+            <span>${items.length} 张</span>
+          </div>
+          <div class="section-body">
+            <div class="flashcard-grid">${cards}</div>
+            <p class="flashcard-hint">点击卡片进入抽卡特写，自动翻转揭晓释义</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderDialogue(lines) {
+      const rows = lines.map(line => {
+        const isYou = line.role === 'you';
+        const label = isYou ? '你' : 'TA';
+        return `
+          <div class="dialogue-line ${isYou ? 'you' : 'partner'}">
+            <div class="dialogue-avatar">${label}</div>
+            <div class="dialogue-bubble">
+              ${escapeHtml(line.text)}
+              ${line.translation ? `<span class="translation">${escapeHtml(line.translation)}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+      return `
+        <article class="section-card dialogue" data-dialogue-section>
+          <div class="section-header">
+            <div class="section-icon">💬</div>
+            <h2>对话模拟器</h2>
+            <span>${lines.length} 轮示例</span>
+          </div>
+          <div class="section-body">
+            <div class="dialogue-box dialogue-preview">${rows}</div>
+            <div class="dialogue-toolbar">
+              <button type="button" class="btn-secondary" data-start-practice>
+                🎭 开始对话练习
+              </button>
+            </div>
+            <div class="dialogue-practice-panel" data-practice-panel>
+              <div class="practice-header">
+                <strong>与 AI 实时对话练习</strong>
+                <button type="button" class="btn-practice-end" data-end-practice>结束练习</button>
+              </div>
+              <div class="practice-chat" data-practice-chat></div>
+              <div class="practice-input-row">
+                <input type="text" data-practice-input placeholder="用英语回复…" autocomplete="off">
+                <button type="button" class="btn-send" data-practice-send>发送</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
+    function escapeAttr(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+    }
+
+    function openFlashcardSpotlight(word, definition) {
+      spotlightFront.textContent = word;
+      spotlightBack.textContent = definition;
+      spotlightCard.classList.remove('flipped');
+      spotlightFlipBtn.textContent = '翻转揭晓释义';
+      flashcardSpotlight.classList.remove('revealed');
+      flashcardSpotlight.classList.add('active', 'revealing');
+      flashcardSpotlight.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      const onRevealEnd = () => {
+        flashcardSpotlight.classList.remove('revealing');
+        flashcardSpotlight.classList.add('revealed');
+        setTimeout(() => {
+          if (flashcardSpotlight.classList.contains('revealed') && !spotlightCard.classList.contains('flipped')) {
+            flipSpotlightCard();
+          }
+        }, 550);
+      };
+      const wrap = flashcardSpotlight.querySelector('.spotlight-card-wrap');
+      wrap.addEventListener('animationend', onRevealEnd, { once: true });
+      setTimeout(onRevealEnd, 950);
+    }
+
+    function closeFlashcardSpotlight() {
+      flashcardSpotlight.classList.remove('active', 'revealing', 'revealed');
+      flashcardSpotlight.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function flipSpotlightCard() {
+      const flipped = spotlightCard.classList.toggle('flipped');
+      spotlightFlipBtn.textContent = flipped ? '翻回单词' : '翻转揭晓释义';
+    }
+
+    spotlightFlipBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (flashcardSpotlight.classList.contains('revealed')) flipSpotlightCard();
+    });
+
+    spotlightCloseBtn.addEventListener('click', closeFlashcardSpotlight);
+    spotlightBackdrop.addEventListener('click', closeFlashcardSpotlight);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && flashcardSpotlight.classList.contains('active')) {
+        closeFlashcardSpotlight();
+      }
+    });
+
+    function parsePracticeReply(text) {
+      const hintMatch = text.match(/【提示】([\s\S]*)$/);
+      const hint = hintMatch ? hintMatch[1].trim() : '';
+      const main = hintMatch ? text.slice(0, hintMatch.index).trim() : text.trim();
+      return { main, hint };
+    }
+
+    function appendPracticeMessage(chatEl, role, main, hint = '') {
+      const div = document.createElement('div');
+      div.className = `practice-msg ${role}`;
+      div.innerHTML = `
+        <div class="practice-bubble">
+          ${escapeHtml(main)}
+          ${hint ? `<span class="practice-hint">【提示】${escapeHtml(hint)}</span>` : ''}
+        </div>
+      `;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return div;
+    }
+
+    async function callChatAPI(messages) {
+      const url = apiUrlInput.value.trim();
+      const key = apiKeyInput.value.trim();
+      if (!url || !key) throw new Error('请先在「API 配置」中填写 API URL 和 API Key');
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages,
+          temperature: 0.75
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API 请求失败 (${res.status}): ${errText.slice(0, 200)}`);
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error('API 返回格式无法识别');
+      return content.trim();
+    }
+
+    function buildPracticeContextMessage() {
+      const sample = learningContext.dialogue
+        .map(l => `${l.role === 'you' ? 'Learner' : 'Partner'}: ${l.text}`)
+        .join('\n');
+      return `学习笔记：\n${learningContext.note}\n\n参考情景对话：\n${sample || '（无）'}\n\n请先简短用英语开场（1-2句），扮演对方，邀请用户用英语回应。末尾加【提示】中文说明练习目标。`;
+    }
+
+    async function startDialoguePractice(section) {
+      const panel = section.querySelector('[data-practice-panel]');
+      const chatEl = section.querySelector('[data-practice-chat]');
+      const input = section.querySelector('[data-practice-input]');
+      const sendBtn = section.querySelector('[data-practice-send]');
+      const startBtn = section.querySelector('[data-start-practice]');
+
+      if (!learningContext.note) {
+        setStatus('请先生成学习内容后再开始对话练习', 'error');
+        return;
+      }
+
+      panel.classList.add('open');
+      startBtn.disabled = true;
+      chatEl.innerHTML = '';
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      const sessionId = section;
+      const history = [{ role: 'system', content: PRACTICE_SYSTEM_PROMPT }];
+      practiceSessions.set(sessionId, { history, busy: true });
+
+      const typingEl = appendPracticeMessage(chatEl, 'assistant typing', 'AI 正在进入情景…');
+
+      try {
+        history.push({ role: 'user', content: buildPracticeContextMessage() });
+        const reply = await callChatAPI(history);
+        history.push({ role: 'assistant', content: reply });
+        const { main, hint } = parsePracticeReply(reply);
+        typingEl.remove();
+        appendPracticeMessage(chatEl, 'assistant', main, hint);
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+      } catch (err) {
+        typingEl.remove();
+        appendPracticeMessage(chatEl, 'assistant', err.message || '连接失败，请检查 API 配置');
+        startBtn.disabled = false;
+        panel.classList.remove('open');
+      } finally {
+        const s = practiceSessions.get(sessionId);
+        if (s) s.busy = false;
+      }
+    }
+
+    function endDialoguePractice(section) {
+      const panel = section.querySelector('[data-practice-panel]');
+      const startBtn = section.querySelector('[data-start-practice]');
+      panel.classList.remove('open');
+      startBtn.disabled = false;
+      practiceSessions.delete(section);
+    }
+
+    async function sendPracticeMessage(section) {
+      const chatEl = section.querySelector('[data-practice-chat]');
+      const input = section.querySelector('[data-practice-input]');
+      const sendBtn = section.querySelector('[data-practice-send]');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const session = practiceSessions.get(section);
+      if (!session || session.busy) return;
+
+      session.busy = true;
+      input.value = '';
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      appendPracticeMessage(chatEl, 'user', text);
+      session.history.push({ role: 'user', content: text });
+
+      const typingEl = appendPracticeMessage(chatEl, 'assistant typing', '思考中…');
+
+      try {
+        const reply = await callChatAPI(session.history);
+        session.history.push({ role: 'assistant', content: reply });
+        const { main, hint } = parsePracticeReply(reply);
+        typingEl.remove();
+        appendPracticeMessage(chatEl, 'assistant', main, hint);
+      } catch (err) {
+        typingEl.remove();
+        appendPracticeMessage(chatEl, 'assistant', err.message || '发送失败');
+      } finally {
+        session.busy = false;
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    function bindDialoguePractice(section) {
+      const startBtn = section.querySelector('[data-start-practice]');
+      const endBtn = section.querySelector('[data-end-practice]');
+      const sendBtn = section.querySelector('[data-practice-send]');
+      const input = section.querySelector('[data-practice-input]');
+
+      startBtn.addEventListener('click', () => startDialoguePractice(section));
+      endBtn.addEventListener('click', () => endDialoguePractice(section));
+      sendBtn.addEventListener('click', () => sendPracticeMessage(section));
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.isComposing) sendPracticeMessage(section);
+      });
+    }
+
+    function bindInteractions() {
+      resultsEl.querySelectorAll('.btn-speak').forEach(btn => {
+        btn.addEventListener('click', () => speakPhrase(btn.dataset.phrase));
+      });
+      resultsEl.querySelectorAll('.flashcard').forEach(card => {
+        const open = () => openFlashcardSpotlight(card.dataset.word, card.dataset.definition);
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            open();
+          }
+        });
+      });
+      resultsEl.querySelectorAll('[data-dialogue-section]').forEach(bindDialoguePractice);
+    }
+
+    function renderResults(data) {
+      resultsEmpty?.remove();
+      learningContext = {
+        note: noteInput.value.trim(),
+        dialogue: data.dialogue || []
+      };
+      const html = [
+        data.speaking?.length ? renderSpeaking(data.speaking) : '',
+        data.flashcards?.length ? renderFlashcards(data.flashcards) : '',
+        data.dialogue?.length ? renderDialogue(data.dialogue) : ''
+      ].filter(Boolean).join('');
+
+      resultsEl.innerHTML = html || '<div class="results-empty">未生成有效内容，请重试或检查笔记。</div>';
+      bindInteractions();
+    }
+
+    async function callAPI(note) {
+      const url = apiUrlInput.value.trim();
+      const key = apiKeyInput.value.trim();
+
+      if (!url || !key) {
+        throw new Error('请先在「API 配置」中填写 API URL 和 API Key');
+      }
+
+      const body = {
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: note }
+        ],
+        temperature: 0.7
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API 请求失败 (${res.status}): ${errText.slice(0, 200)}`);
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content
+        ?? json.content
+        ?? json.result
+        ?? (typeof json === 'string' ? json : null);
+
+      if (!content) throw new Error('API 返回格式无法识别，请确认接口兼容 OpenAI Chat Completions');
+      return parseAIResponse(typeof content === 'string' ? content : JSON.stringify(content));
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      const note = noteInput.value.trim();
+      if (!note) {
+        setStatus('请先输入学习笔记', 'error');
+        return;
+      }
+
+      setLoading(true);
+      setStatus('');
+
+      try {
+        const data = await callAPI(note);
+        renderResults(data);
+        setStatus('生成完成', 'success');
+      } catch (err) {
+        setStatus(err.message || '生成失败', 'error');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
